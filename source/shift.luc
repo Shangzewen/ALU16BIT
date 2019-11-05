@@ -1,0 +1,21 @@
+module shift (
+    input alufn[6],
+    input a[16], // input A 
+    input b[16], // input of the number of bits that input a need to be shifted
+    output shif[16] // get the output
+  ) {
+
+  always {
+    case(alufn[1:0])
+    {
+      b00:
+        shif = a<<b; // shift left
+      b01:
+        shif = a>>b; // shift right
+      b11:
+        shif = $signed(a) >>> b; // shift right based on the sign of the msb
+      default:
+        shif = a; // assign the default value of shif to a;
+      }
+  }
+}

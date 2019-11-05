@@ -1,0 +1,43 @@
+module adder (
+//   input clk,  // clock
+//    input rst,  // reset
+//    output out
+    input a[16], // input 16 bit A
+    input b[16], // input 16 bit B
+    input alufn[6], // input 6 bit ALUFN[5:0]
+    output s[16], // get the 16 bit output
+    output z, // get z
+    output v, // get v
+    output n // get n
+
+  ) {
+  sig operation[16]; // what kind of operation we need to choose
+  sig value[16]; // the value of z v n 
+  
+
+  always {
+    case(alufn[1:0])  // the adder will be called based on the alufn0
+    {
+      b00:
+        operation=a+b; // alufn0=0 for addition
+      b01:
+        operation = a-b; // alufn=1 for substration
+      default:
+        operation = a+b; // set default operation as addition
+        
+      
+      }
+    value = a-b;
+    z = ~|value; // calculate z
+    
+    //overflow = (a[15] & b[15] & ~operation[15]) | (~a[15] & ~b[15] & operation[15]); 
+
+    // calculate v
+
+    //v = (a[15] & ~b[15] & (~value[15])) | ((~a[15])&(b[15])&value[15]);
+    v = (a[15] & (b[15]^alufn[0]) & ~operation[15])|(~a[15] & ~(b[15]^alufn[0]) & operation[15]); // calculate v a[15] means a[15:0] 
+    n = value[15]; // calculate n
+    s = operation; // get the output s
+    
+  }
+}

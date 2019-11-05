@@ -1,0 +1,209 @@
+module autotest (
+    input clk,  // clock
+    input rst,  // reset
+    input mode_switch,
+    output leds[3][8],
+    output debug[16]  //for debugging purposes
+  ) {
+ // sig rest_sig; // need to rest the alu whenever it test all the testcases 
+  const CLKSPEED = 26;// in order to make sure the auto test is not too fast
+
+ 
+ 
+  
+ alu16bit alu;
+    edge_detector testButton(.clk(clk), .in(mode_switch), #FALL(0));   
+  .clk(clk){
+    .rst(rst){
+      fsm state = {START,ADD,ADD_OVERFLOW,SUB,SUB_OVERFLOW,AND,OR,XOR,A,SHL,SHR,SRA,PASS,FAIL};
+      dff counter[CLKSPEED]; // create counter
+      dff led[3][8];
+    }
+  }
+    const NADD = 6b000000;
+    const NSUB = 6b000001;
+    const NAND = 6b011000;
+    const NOR = 6b011110;
+    const NXOR = 6b010110;
+    const NA = 6b011010;
+    const NSHL = 6b100000;
+    const NSHR = 6b100001;
+    const NSRA = 6b100011;
+    const NUM1 = 16b011; // the number 3
+    const NUM2 = 16b100; // the number 4
+    
+  always {
+    counter.d = counter.q +1; // to increase the counter
+    leds = led.q;
+    leds[2][7] = 1;
+
+    debug = 0;
+    
+    
+    alu.a = 16b0;
+    alu.b = 16b0;
+    alu.alufn = 16b0; 
+    case(state.q){
+      
+        state.START: // at the start state
+          alu.alufn = 16b0;
+          alu.a = 16b0;
+          alu.b = 16b0;
+          debug = b000011;
+          if (counter.q[CLKSPEED-1]){ // begin test
+            state.d = state.ADD;
+          }
+          
+        state.ADD:
+          alu.alufn = NADD; // set the alufn to adder
+          alu.a = NUM1;
+          alu.b = NUM2;
+        
+          if(alu.out == 16b111){
+          led.d[0][0] = 1; // since the answer is 7 which is true then we can set the led corresonding to this test case pass 
+          }
+
+          if (counter.q[CLKSPEED-1] && alu.out == 16b111){
+            state.d = state.ADD_OVERFLOW;
+          }
+        
+         state.ADD_OVERFLOW:
+          alu.alufn = NADD; // set the alufn to adder
+          alu.a = 16b1000000000000000;
+          alu.b = 16b1000000000000000;
+          if(alu.v == 1){
+          led.d[0][1] = 1; // since the overflow is 1 which is true then we can set the led corresonding to this test case pass 
+          }
+
+          if (counter.q[CLKSPEED-1] && alu.v == 1){
+            state.d = state.SUB;
+          }  
+                
+        state.SUB:
+          alu.alufn = NSUB;
+          alu.a = NUM2;//4
+          alu.b = NUM1;//3
+          //debug = alu.out[7:0];
+          if(alu.out == 16b1){ 
+          led.d[0][2] = 1; // since we have the correct answer then we can light up the led 
+            }
+
+          if (counter.q[CLKSPEED-1] && alu.out == 16b1){
+            state.d = state.SUB_OVERFLOW;
+          }
+        
+        state.SUB_OVERFLOW:
+          alu.alufn = NSUB; 
+          alu.a = 16b1000000000000000;
+          alu.b = 16b0111111111111111;
+          debug = alu.out[15:8];
+          if(alu.v == 1){ // TODO : STILL NOT PASS HERE
+          led.d[0][3] = 1; // since the overflow is 1 which is true then we can set the led corresonding to this test case pass 
+          }
+
+          if (counter.q[CLKSPEED-1] && alu.v == 1){
+        //if (counter.q[CLKSPEED-1]){ //FORCE PASS TO CHECK FSM ONLY, PLEASE FIX THIS.
+            state.d = state.AND;
+            led.d[0][3] =1;
+          }
+        
+        state.AND:
+          alu.alufn = NAND;
+          alu.a = 16b1;
+          alu.b = 16b1;
+          if(alu.out == 16b1){
+          led.d[0][4] = 1;
+            }
+
+          if (counter.q[CLKSPEED-1] && alu.out == 16b1){
+            state.d = state.OR;
+          }
+         state.OR:
+          alu.alufn = NOR;
+          alu.a = 16b1010;
+          alu.b = 16b1111;
+          if(alu.out == 16b1111){// the or gate will only reault 0 when both a and b are 0
+          led.d[0][5] = 1;
+            }
+
+          if (counter.q[CLKSPEED-1] && alu.out == 16b1111){
+            state.d = state.XOR;
+          }
+          
+         state.XOR:
+          alu.alufn = NXOR;
+          alu.a = 16b1010;
+          alu.b = 16b1100;
+          if(alu.out == 16b0110){ // will reault 0 only when a = b
+          led.d[0][6] = 1;
+            }
+
+          if (counter.q[CLKSPEED-1] && alu.out == 16b0110){
+            state.d = state.A;
+          }
+         state.A:
+          alu.alufn = NA;
+          alu.a = NUM1;
+          alu.b = NUM2;
+          if(alu.out == NUM1){
+          led.d[0][7] = 1;
+            }
+
+          if (counter.q[CLKSPEED-1] && alu.out == NUM1){
+            state.d = state.SHL;
+          }
+        
+         state.SHL:
+          alu.alufn = NSHL;
+          alu.a = 16b1010;
+          alu.b = 16b11;// 3 in decimal
+          if(alu.out == 16b1010000){
+          led.d[1][0] = 1;
+            }
+
+          if (counter.q[CLKSPEED-1] && alu.out == 16b1010000){
+            state.d = state.SHR;
+          }                    
+         state.SHR:
+          alu.alufn = NSHR;
+          alu.a = 16b1010000;
+          alu.b = 16b11;// 3 in decimal
+          if(alu.out == 16b1010){
+          led.d[1][1] = 1;
+            }
+
+          if (counter.q[CLKSPEED-1] && alu.out == 16b1010){
+            state.d = state.SRA;
+          }
+         state.SRA:
+          alu.alufn = NSRA;
+          alu.a = b1100000000000000;
+          alu.b = 16b11;// decimal 3
+          if(alu.out == b1111100000000000){
+          led.d[1][2] = 1;
+            }
+
+          if (counter.q[CLKSPEED-1] && alu.out == b1111100000000000){
+              state.d = state.PASS;
+              
+          }
+        state.PASS:
+          alu.a = 16b0;
+          alu.b =16b0;
+          alu.alufn =16b0;
+          led.d[2] = 8b1;
+        
+ 
+   
+      }
+    
+    
+      if (counter.q[CLKSPEED-1]==1){
+      counter.d[CLKSPEED-1]=0;
+        } 
+      
+        
+    
+      
+  }
+}

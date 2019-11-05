@@ -1,0 +1,22 @@
+module compare (
+    input alufn[6], // input alufn
+    input z, 
+    input v,
+    input n, // get the z v n  value from adder
+    output comp // after the calculation get the comp value
+  ) {
+
+  always {
+    case(alufn[2:1])
+    {
+      b01:
+        comp = z; // equal
+      b10:
+        comp = n^v; // smaller
+      b11:
+        comp = z|(n^v); // smaller equal
+      default:
+        comp = 0; // set the default value to 0
+      }
+  }
+}

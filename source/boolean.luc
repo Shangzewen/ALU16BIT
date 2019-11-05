@@ -1,0 +1,23 @@
+module boolean (
+    input alufn[6], // input alufn 
+    input a[16], // get the input a 
+    input b[16], // get the input b
+    output bool[16] // calcuate the output bool
+  ) {
+
+  always {
+    case(alufn[3:0])
+    {
+      b1000:
+        bool = a&b; // and 
+      b1110:
+        bool = a|b; // or 
+      b0110:
+        bool = a^b; // xor
+      b1010:
+        bool = a; // A 
+      default:
+        bool = 0; // set the default value for bool 
+      }
+  }
+}

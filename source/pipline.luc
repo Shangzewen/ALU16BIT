@@ -1,0 +1,23 @@
+module pipeline #(
+    DEPTH = 1 : DEPTH > 0 // number of stages
+  )(
+    input clk,  // clock
+    input in,   // input
+    output out  // output
+  ) {
+  
+  dff pipe[DEPTH] (.clk(clk));
+  var i;
+  
+  always {
+    // in goes into the start of the pipe
+    pipe.d[0] = in; 
+    
+    // out is the end of the pipe
+    out = pipe.q[pipe.WIDTH-1]; 
+    
+    // for each intermediate state
+    for (i = 1; i < DEPTH; i++)
+      pipe.d[i] = pipe.q[i-1]; // copy from previous
+  }
+}

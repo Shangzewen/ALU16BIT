@@ -1,0 +1,52 @@
+module alu16bit (
+    input alufn[6], // input alufn 
+    input a[16], // input A
+    input b[16], // input B 
+    output out[16], // get the output
+    output z, // get z
+    output v, // get v
+    output n // get n
+
+  ) {
+  adder add;
+  boolean bool;
+  compare comp;
+  shift shif; // instantiate moudle 4 functions we code 
+  
+
+  always { 
+    add.a = a;
+    add.b = b;
+    add.alufn = alufn; // set the input of adder
+    bool.a = a;
+    bool.b = b;
+    bool.alufn = alufn; // set the input for boolean 
+    comp.z = add.z;
+    comp.v = add.z;
+    comp.n = add.n; // asign the input zvn of compare from the output zvn of adder
+    comp.alufn = alufn; // set the input alufn
+    shif.a = a;
+    shif.b=b;
+    shif.alufn = alufn; // set the input a b alufn
+    
+    case(alufn[5:4])
+      {
+      b00:
+        out = add.s; // call adder
+      b01:
+        out = bool.bool; // call boolean
+      b10:
+        out = shif.shif; // call shift
+      b11:
+        out = comp.comp; // call compare
+      default:
+        out = 0; // set the default to 0
+      
+      }
+    z = add.z; // get z from the output of adder
+    v = add.v; // get v from the output of adder
+    n = add.n; // get n from the output of adder
+    //overflow = add.overflow;
+
+  }
+}
